@@ -25,6 +25,8 @@ void Player_Power();
 void Player_Direction();
 
 
+void Player_ManualMove();
+
 //ƒ{[ƒ‹‚Ìó‘Ô
 enum PLAYER_STATE
 {

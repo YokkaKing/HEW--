@@ -56,11 +56,11 @@ void	Camera_Update()
 
 	//注視点を中心にカメラの位置を回転（Y軸回転）
 	float	Rotation = 0.0f;
-	if (Keyboard_IsKeyDown(KK_A))
+	if (Keyboard_IsKeyDown(KK_Q))
 	{
 		Rotation = 1.0f;
 	}
-	if (Keyboard_IsKeyDown(KK_D))
+	if (Keyboard_IsKeyDown(KK_E))
 	{
 		Rotation = -1.0f;
 	}

@@ -49,12 +49,19 @@ void	PlayerUpdate()
 	{
 	case PLAYER_STATE::PLAYER_STATE_IDLE:
 		Player_Idle();
+
+		Player_ManualMove();
+
 		break;
 	case PLAYER_STATE::PLAYER_STATE_MOVE:
 		Player_Move();
 		break;
 	case PLAYER_STATE::PLAYER_STATE_DIRECTION:
 		Player_Direction();
+
+		Player_ManualMove();
+
+
 		break;
 	case PLAYER_STATE::PLAYER_STATE_POWER:
 		Player_Power();
@@ -85,6 +92,63 @@ void	PlayerUpdate()
 
 
 }
+
+void Player_ManualMove() // 新しい手動移動関数として作成を推奨
+{
+	// カメラの情報を取得
+	XMFLOAT3 v1 = GetCameraAtPosition();
+	XMFLOAT3 v2 = GetCameraPosition();
+	XMFLOAT3 Forward, Right;
+	float MoveSpeed = 2.0f / 60.0f; // 毎フレームの移動速度 (調整が必要)
+	float len;
+
+	//前方ベクトル
+	Forward.x = v1.x - v2.x;
+	Forward.y = 0.0f;
+	Forward.z = v1.z - v2.z;
+
+	len = sqrtf(Forward.x * Forward.x + Forward.z * Forward.z);
+
+	// 正規化
+	if (len > 0.00001f) {
+		Forward.x /= len;
+		Forward.z /= len;
+
+		//右方ベクトル (Right Vector) の計算
+		Right.x = -Forward.z;
+		Right.y = 0.0f;
+		Right.z = Forward.x;
+	}
+	else {
+		// カメラが注視点と同じ位置にあるなど、ベクトル計算ができない場合
+		return;
+	}
+
+
+	// 当たり判定
+	float hit = PlayerField_Collision();
+
+	// 前後移動
+	if (Keyboard_IsKeyDown(KK_W)) {
+		g_Player.Position.x += Forward.x * MoveSpeed; // 前進
+		g_Player.Position.z += Forward.z * MoveSpeed;
+	}
+	if (Keyboard_IsKeyDown(KK_S)) {
+		g_Player.Position.x -= Forward.x * MoveSpeed; // 後退
+		g_Player.Position.z -= Forward.z * MoveSpeed;
+	}
+
+	// 左右移動
+	if (Keyboard_IsKeyDown(KK_A)) {
+		g_Player.Position.x += Right.x * MoveSpeed; // 左移動 (Rightの反対)
+		g_Player.Position.z += Right.z * MoveSpeed;
+	}
+	if (Keyboard_IsKeyDown(KK_D)) {
+		g_Player.Position.x -= Right.x * MoveSpeed; // 右移動
+		g_Player.Position.z -= Right.z * MoveSpeed;
+	}
+}
+
 void	PlayerDraw() 
 {
 	//ワールド行列作成
