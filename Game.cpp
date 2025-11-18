@@ -11,7 +11,7 @@
 #include	"Audio.h"
 
 #include	"Camera.h"
-
+#include "fade.h"
 #include "Player.h"
 
 #include	"direct3d.h"//<<<<<<<<<<<<<<<<<<<
@@ -70,6 +70,16 @@ void Game_Update()
 	Field_Update();
 	Camera_Update();	//カメラ更新処理
 	
+	//キー入力チェック
+//スタートボタンが押されたらシーンを切り替え
+//フェード処理中はキーを受け付けない
+	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
+	{
+		//フェードアウトさせてシーンを切り替える
+		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
+		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
+	}
+
 }
 
 void Game_Draw()
