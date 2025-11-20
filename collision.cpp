@@ -65,13 +65,26 @@ float PlayerField_Collision()
 		{
 			if (Map[i].pos.z - BOX_RADIUS < Player->Position.z && Player->Position.z < Map[i].pos.z + BOX_RADIUS)
 			{
+				if (Map[i].pos.x - BOX_RADIUS < Player->Position.x && Player->Position.x < Map[i].pos.x + BOX_RADIUS)
+				{
+					if (Map[i].pos.y - BOX_RADIUS < Player->Position.y + PLAYER_RADIUS && Player->Position.y < Map[i].pos.y - BOX_RADIUS)
+					{
+						//下からあたった
+						Player->Position.y += (Map[i].pos.y - BOX_RADIUS) - (Player->Position.y + PLAYER_RADIUS);
+						Player->Velocity.y *= -COE;
+						//hit = 
+					}
+					else if (BoxTop > Player->Position.y - PLAYER_RADIUS && Player->Position.y > BoxTop)
+					{
+						//地面に当たった
+						//上から当たったので座標の補正
+						Player->Position.y += (BoxTop)-(Player->Position.y - PLAYER_RADIUS);
+						Player->Velocity.y = Player->Velocity.y * (-COE * 1.0f);//ベクトルの反転
+						hit = COLLISION_HIT::HIT_GROUND;
+					}
 
-
-
+				}
 			}
-
-
-
 		}
 
 
