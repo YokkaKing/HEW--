@@ -11,6 +11,7 @@ using namespace DirectX;
 
 #define PLAYER_SPEED_MAX (1.0f)
 #define PLAYER_RADIUS    (0.2f)
+#define PLAYER_JUMP		 (1.0f)
 
 void	PlayerInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void	PlayerFinalize();
@@ -23,6 +24,7 @@ void Player_Idle();
 void Player_Move();
 void Player_Power();
 void Player_Direction();
+void Player_Jump();
 
 
 void Player_ManualMove();
@@ -34,6 +36,7 @@ enum PLAYER_STATE
 	PLAYER_STATE_MOVE,		//移動
 	PLAYER_STATE_DIRECTION,	//方向指示
 	PLAYER_STATE_POWER,		//威力指示
+	PLAYER_STATE_JUMP,		//ジャンプ
 };
 
 //ボール構造体
