@@ -19,6 +19,8 @@ enum FIELD
 
 	FIELD_OBT,
 
+	FIELD_LIFT,
+
 	FIELD_MAX
 };
 //MAPデータ構造体

@@ -1,14 +1,18 @@
 
-#include "field.h"
-#include "Camera.h"
+//================================================================
+//	インクルード
+//================================================================
+#include"field.h"
+#include"Camera.h"
+#include"model.h"
+#include"colliderFactory.h"
+#include"gameObject.h"
 
-#include "model.h"
-
+//================================================================
+//	グローバル変数
+//================================================================
 MODEL* Model[FIELD_MAX];
 
-
-
-//グローバル変数
 static	ID3D11Device* g_pDevice = NULL;
 static	ID3D11DeviceContext* g_pContext = NULL;
 //頂点バッファ
@@ -273,14 +277,8 @@ MAPDATA		Map[] =
 	{XMFLOAT3(2.0f, -1.0f, 5.0f), FIELD_MAX}//MAPデータ終了
 };
 
-
-
-
 void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-
-
-
 	g_pDevice = pDevice;
 	g_pContext = pContext;
 
@@ -291,6 +289,56 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	CreateShaderResourceView(pDevice, image.GetImages(),
 		image.GetImageCount(), metadata, &g_Texture);
 	assert(g_Texture);
+
+	// 当たり判定を付ける処理
+	for (int i = 0; i < std::size(Map); i++)
+	{
+		const auto mapData = Map[i]; // マップのコピーを取得
+
+		GameObject* object = nullptr;
+
+		switch (Map[i].no)
+		{
+		case FIELD::FIELD_BOX:
+			object = ColliderFactory::CreateBoxObject(
+				Map[i].pos,
+				{ 1.0f, 1.0f, 1.0f },
+				"Wall",
+				0
+			);
+			break;
+
+		case FIELD::FIELD_OBT:
+			/*object = ColliderFactory::CreateBoxObject(
+				Map[i].pos,
+				{ 1.0f, 1.0f, 1.0f },
+				"Tree",
+				0
+			);*/
+			object = ColliderFactory::CreateSphereObject(
+				Map[i].pos,
+				0.5f,
+				"Tree",
+				0
+			);
+			break;
+
+		case FIELD::FIELD_LIFT:
+			object = ColliderFactory::CreateBoxObject(
+				Map[i].pos,
+				{ 0.5f, 0.5f, 0.5f },
+				"Lift",
+				0
+			);
+			break;
+
+		case FIELD::FIELD_MAX:
+			break;
+
+		default:
+			break;
+		}
+	}
 
 	//ブロックの作成
 	for (int i = 0; i < FIELD_MAX; i++)
@@ -305,13 +353,11 @@ void Field_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 				Model[FIELD_OBT] = ModelLoad("asset\\model\\tree.fbx");//デバッグ
 				break;
 
-
-
-
+			case FIELD_LIFT:
+				CreateBox();
+				break;
 		}
-
 	}
-
 }
 void Field_Finalize(void)
 {
@@ -351,6 +397,12 @@ void Field_Draw(void)
 		(
 			1.0f, 1.0f, 1.0f
 		);
+
+		if (Map[i].no == FIELD::FIELD_LIFT)
+		{
+			ScalingMatrix = XMMatrixScaling(0.5f, 0.5f, 0.5f);
+		}
+
 		//平行移動行列の作成
 		XMMATRIX	TranslationMatrix = XMMatrixTranslation
 		(
@@ -387,7 +439,7 @@ void Field_Draw(void)
 		//描画するポリゴンの種類をセット 3頂点でポリゴン１枚として表示
 		g_pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		if (Map[i].no == FIELD_BOX)
+		if (Map[i].no == FIELD_BOX || Map[i].no == FIELD_LIFT)
 		{
 			////描画リクエスト
 			g_pContext->DrawIndexed(6 * 6, 0, 0);
@@ -396,7 +448,6 @@ void Field_Draw(void)
 		{
 			ModelDraw(Model[Map[i].no]);
 		}
-
 
 		//ModelDraw(Test);//デバッグ
 
