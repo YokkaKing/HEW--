@@ -42,7 +42,7 @@ void	PlayerInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	g_Player.EvolutionType = EVOLUTION_TYPE::EVOLUTION_TYPE_NONE;
 
 	g_StopTime = 0.0f;
-
+	g_Player.SetObject(g_Player.m_position, g_Player.m_scale, "Player", 0);
 	EvolutionInitialize();
 }
 void	PlayerFinalize()
