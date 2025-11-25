@@ -22,10 +22,10 @@ using namespace DirectX;
 #include"field.h"
 #include<string>
 #include"model.h"
-
 #include"debug_ostream.h"
 
 class CollisionInfo;
+class Collider;
 
 //=======================================
 // GameObject（コンポーネント管理）

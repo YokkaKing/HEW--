@@ -14,7 +14,7 @@ using namespace DirectX;
 
 #define COE (0.5f) // îΩî≠åWêî
 
-float PlayerField_Collision();
+//float PlayerField_Collision();
 
 enum COLLISION_HIT
 {
