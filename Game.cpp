@@ -5,6 +5,7 @@
 #include	"sprite.h"
 #include	"Game.h"
 #include	"keyboard.h"
+#include	"Controller.h"
 
 #include	"field.h"
 #include	"Effect.h"
@@ -13,6 +14,7 @@
 #include	"Camera.h"
 #include "fade.h"
 #include "Player.h"
+#include "managerCollider.h"
 
 #include	"direct3d.h"//<<<<<<<<<<<<<<<<<<<
 
@@ -23,6 +25,7 @@ static	int		g_BgmID = NULL;	//サウンド管理ID
 
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
+	Controller_Initialize();
 
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
 	PlayerInitialize(pDevice, pContext); // ボールの初期化
@@ -69,7 +72,7 @@ void Game_Update()
 	PlayerUpdate();
 	Field_Update();
 	Camera_Update();	//カメラ更新処理
-	
+	ManagerCollider::UpdateAllCollisions();
 	//キー入力チェック
 //スタートボタンが押されたらシーンを切り替え
 //フェード処理中はキーを受け付けない

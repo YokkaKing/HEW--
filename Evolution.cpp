@@ -30,14 +30,14 @@ void EvolvePlayer()
         bool evolved = false;
 
         // Eキーが押されたらタイプAに変身
-        if (Keyboard_IsKeyDownTrigger(KK_E))
+        if (Keyboard_IsKeyDownTrigger(KK_R))
         {
             g_Player.EvolutionType = EVOLUTION_TYPE::EVOLUTION_TYPE_A;
             newModelPath = "asset\\model\\ball.fbx"; // A用モデルパス
             evolved = true;
         }
         // Rキーが押されたらタイプBに変身
-        else if (Keyboard_IsKeyDownTrigger(KK_R))
+        else if (Keyboard_IsKeyDownTrigger(KK_T))
         {
             g_Player.EvolutionType = EVOLUTION_TYPE::EVOLUTION_TYPE_B;
             newModelPath = "asset\\model\\tree.fbx"; // B用モデルパス

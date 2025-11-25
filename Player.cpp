@@ -2,15 +2,18 @@
 //Player.cpp
 
 #include	"keyboard.h"
+#include	"Controller.h"
 #include	"Player.h"
 #include	"Camera.h"
 #include	"shader.h"
 #include    "collision.h"
 #include    "Evolution.h"
 #include	"colliderFactory.h"
+#include "debug_ostream.h"
 
 
 #define CLIMB_SPEED (2)
+#define JUMP_FORCE (0.15)
 
 //ボールオブジェクト
 PLAYER	g_Player;
@@ -56,116 +59,98 @@ void	PlayerUpdate()
 {
 	EvolvePlayer();           // Eキーで進化タイプを選択（一度だけ実行）
 	ApplyEvolutionEffect();   // 進化タイプに応じたパラメータを適用
-
-
-	switch (g_Player.State)
-	{
-	case PLAYER_STATE::PLAYER_STATE_IDLE:
-		Player_Idle();
-
-		Player_ManualMove();
-
-		break;
-	case PLAYER_STATE::PLAYER_STATE_MOVE:
-		Player_Move();
-		break;
-	case PLAYER_STATE::PLAYER_STATE_DIRECTION:
-		Player_Direction();
-		Player_ManualMove();
-		break;
-	case PLAYER_STATE::PLAYER_STATE_POWER:
-		Player_Power();
-		break;
-	case PLAYER_STATE::PLAYER_STATE_JUMP:
-		Player_Jump();
-		Player_ManualMove();
-		break;
-	}
-
-	//常に実行される物理演算 (加速度->速度、速度->位置)
-
-	g_Player.m_velocity.x += g_Player.m_acceleration.x;
-	g_Player.m_velocity.y += g_Player.m_acceleration.y; //重力
-	g_Player.m_velocity.z += g_Player.m_acceleration.z;
-
-
-	// ManualMove中でない場合のみ、VelocityをPositionに適用する
-	g_Player.m_position.x += g_Player.m_velocity.x;
-	g_Player.m_position.y += g_Player.m_velocity.y;
-	g_Player.m_position.z += g_Player.m_velocity.z;
-
-
-	// 常に当たり判定を行う
-	float hit=0;
-
-	//地面に着地した際の処理 (ジャンプ/移動からの着地判定)
-	if (hit > 0.001f)
-	{
-		// Y軸方向の速度をリセット（めり込み防止と反発防止）
-		g_Player.m_velocity.y = 0.0f;
-
-		// ジャンプ中またはMOVE中の場合、IDLEに戻す
-		if (g_Player.State == PLAYER_STATE::PLAYER_STATE_JUMP || g_Player.State == PLAYER_STATE::PLAYER_STATE_MOVE)
-		{
-			g_Player.State = PLAYER_STATE::PLAYER_STATE_IDLE;
-		}
-	}
+	Player_ManualMove();
 
 }
 
-void Player_ManualMove() // 新しい手動移動関数として作成を推奨
+void Player_ManualMove() // 新しい手動移動関数として作成
 {
-	// カメラの情報を取得
-	XMFLOAT3 v1 = GetCameraAtPosition();
-	XMFLOAT3 v2 = GetCameraPosition();
-	XMFLOAT3 Forward, Right;
-	float MoveSpeed = 3.0f / 60.0f; // 毎フレームの移動速度 (調整が必要)
-	float len;
+	g_Player.m_gameObject->m_position = g_Player.m_position;
 
-	//前方ベクトル
-	Forward.x = v1.x - v2.x;
-	Forward.y = 0.0f;
-	Forward.z = v1.z - v2.z;
+	// カメラの前方向ベクトル
+	float forwardX = GetCameraPosition().x - GetCameraAtPosition().x;
+	float forwardZ = GetCameraPosition().z - GetCameraAtPosition().z;
+	
+	hal::dout << g_Player.m_velocity.y << "\n";
 
-	len = sqrtf(Forward.x * Forward.x + Forward.z * Forward.z);
-
-	// 正規化
-	if (len > 0.00001f) {
-		Forward.x /= len;
-		Forward.z /= len;
-
-		//右方ベクトル (Right Vector) の計算
-		Right.x = -Forward.z;
-		Right.y = 0.0f;
-		Right.z = Forward.x;
-	}
-	else {
-
-
-		return;
+	if (!g_Player.m_isGround) // 地面についてないときに重力発動
+	{
+		g_Player.m_velocity.x += g_Player.m_acceleration.x;
+		g_Player.m_velocity.y += g_Player.m_acceleration.y;
+		g_Player.m_velocity.z += g_Player.m_acceleration.z;
+		hal::dout << "おちてる\n";
 	}
 
-	// 当たり判定
-
-	// 前後移動
-	if (Keyboard_IsKeyDown(KK_W)) {
-		g_Player.m_position.x += Forward.x * MoveSpeed; // 前進
-		g_Player.m_position.z += Forward.z * MoveSpeed;
+	// 地面についているときにコヨーテタイムが1.0fになる
+	if (g_Player.m_isGround)
+	{
+		g_Player.m_koyoteTime = 1.0f;
 	}
-	if (Keyboard_IsKeyDown(KK_S)) {
-		g_Player.m_position.x -= Forward.x * MoveSpeed; // 後退
-		g_Player.m_position.z -= Forward.z * MoveSpeed;
+	else
+	{
+		g_Player.m_koyoteTime -= 0.1f;
 	}
 
-	// 左右移動
-	if (Keyboard_IsKeyDown(KK_A)) {
-		g_Player.m_position.x += Right.x * MoveSpeed; // 左移動 (Rightの反対)
-		g_Player.m_position.z += Right.z * MoveSpeed;
+	float len = sqrtf(forwardX * forwardX + forwardZ * forwardZ);
+	forwardX /= len;
+	forwardZ /= len;
+
+	// カメラの右方向ベクトル
+	float rightX = forwardZ;    // 右方向は前方向ベクトルを90度回転
+	float rightZ = -forwardX;
+
+	// 移動量初期化
+	float moveX = 0.0f;
+	float moveZ = 0.0f;
+
+	float speed = 0.0f;
+	if (Keyboard_IsKeyDown(KK_W))
+	{
+		// ベクトルが逆だから移動が逆になる
+		speed = -0.1f;
 	}
-	if (Keyboard_IsKeyDown(KK_D)) {
-		g_Player.m_position.x -= Right.x * MoveSpeed; // 右移動
-		g_Player.m_position.z -= Right.z * MoveSpeed;
+	if (Keyboard_IsKeyDown(KK_S))
+	{
+		speed = 0.1f;
 	}
+
+	moveX += forwardX * speed;
+	moveZ += forwardZ * speed;
+
+	// 横移動
+	float strafe = 0.0f;
+	if (Keyboard_IsKeyDown(KK_A))
+	{
+		strafe = +0.1f;  // 左
+	}
+	if (Keyboard_IsKeyDown(KK_D))
+	{
+		strafe = -0.1f;  // 右
+	}
+	moveX += rightX * strafe;
+	moveZ += rightZ * strafe;
+
+	// 最終速度
+	g_Player.m_velocity.x = moveX;
+	g_Player.m_velocity.z = moveZ;
+
+	// スペース押した && コヨーテタイムが0.0fより大きい
+	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && g_Player.m_koyoteTime > 0.0f)
+	{
+		g_Player.m_velocity.y = JUMP_FORCE;
+		g_Player.m_isGround = false;
+		g_Player.m_koyoteTime = 0.0f;
+	}
+	else
+	{
+		g_Player.m_isGround = false;
+	}
+
+	g_Player.m_position.x += g_Player.m_velocity.x;
+	g_Player.m_position.z += g_Player.m_velocity.z;
+	g_Player.m_position.y += g_Player.m_velocity.y;
+
+	
 }
 
 void	PlayerDraw() 
@@ -202,90 +187,6 @@ void	PlayerDraw()
 XMFLOAT3 GetPlayerPosition()
 {
 	return g_Player.m_position;
-}
-
-void Player_Idle()
-{
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
-	{
-		// 上向きに初速を設定 (この値でジャンプの高さが決まります)
-		g_Player.m_velocity.y += 0.2f;
-
-		// 状態をJUMPに切り替え
-		g_Player.State = PLAYER_STATE::PLAYER_STATE_JUMP;
-	}
-}
-
-void Player_Move()
-{
-
-
-	//g_Player.m_Position.x += g_Player.m_Velocity.x;
-	//g_Player.m_Position.y += g_Player.m_Velocity.y;
-	//g_Player.m_Position.z += g_Player.m_Velocity.z;
-
-	//速度を徐々に減衰させていく
-
-	g_Player.m_velocity.x *= g_Player.FrictionRate;
-	g_Player.m_velocity.z *= g_Player.FrictionRate;
-
-	//g_Player.m_Velocity.x *= 0.98;
-	//g_Player.m_Velocity.z *= 0.98;
-
-	//静止チェック
-	float len = (g_Player.m_velocity.x * g_Player.m_velocity.x + g_Player.m_velocity.y * g_Player.m_velocity.y + g_Player.m_velocity.z * g_Player.m_velocity.z);
-	if (len <= 0.0002f)//静止とみなす速度
-	{
-		g_StopTime++;
-		if (g_StopTime > (60.0f * 2))//2秒間止まっている
-		{
-			g_Player.m_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_Player.State = PLAYER_STATE::PLAYER_STATE_DIRECTION;
-			g_StopTime = 0.0f;
-		}
-	}
-
-	//// 当たり判定
-	//float hit = PlayerField_Collision();
-
-}
-
-void Player_Power()
-{
-	//打ち出すパワーを決める
-	float power = PLAYER_SPEED_MAX * 0.12f;
-
-	g_Player.m_velocity.x *= power;
-	g_Player.m_velocity.y *= power;
-	g_Player.m_velocity.z *= power;
-
-	g_Player.State = PLAYER_STATE::PLAYER_STATE_MOVE;
-}
-
-void Player_Direction()
-{
-	//とりあえずカメラの向いてる方向へ転がす
-	//スペースキーで転がる
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
-	{
-		//カメラの向き
-		XMFLOAT3 v1 = GetCameraAtPosition();
-		XMFLOAT3 v2 = GetCameraPosition();
-		XMFLOAT3 Direction;
-
-		Direction.x = v1.x - v2.x;
-		Direction.y = 0.0f;
-		Direction.z = v1.z - v2.z;
-
-		float len = sqrtf((Direction.x * Direction.x + Direction.y * Direction.y + Direction.z * Direction.z));
-		Direction.x /= len;
-		Direction.z /= len;
-
-		g_Player.m_velocity = Direction;
-
-		g_Player.State = PLAYER_STATE::PLAYER_STATE_POWER;
-	}
-
 }
 
 
