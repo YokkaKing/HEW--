@@ -12,8 +12,8 @@
 #include "debug_ostream.h"
 
 
-#define CLIMB_SPEED (2)
-#define JUMP_FORCE (0.15)
+#define JUMP_FORCE (0.15f)
+#define CLIMB_SPEED (JUMP_FORCE / 2.0f)
 
 //ボールオブジェクト
 PLAYER	g_Player;
@@ -238,7 +238,8 @@ void PLAYER::OnCollision(const CollisionInfo& info)
 				m_velocity.z = 0;
 			}
 		}
-		else if (info.other->m_tag == "Lift")
+		else if (info.other->m_tag == "Lift" ||
+			info.other->m_tag == "HILL")
 		{
 			//================================================================
 			//	押し戻し

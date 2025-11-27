@@ -89,6 +89,13 @@ public:
 
     virtual void OnCollision(const CollisionInfo& info) {}
 
+    void Move(float dx, float dy, float dz)
+    {
+        m_position.x += dx;
+        m_position.y += dy;
+        m_position.z += dz;
+    }
+
     void Update()
     {
         for (auto& c : components)

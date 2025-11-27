@@ -15,6 +15,7 @@
 #include "fade.h"
 #include "Player.h"
 #include "managerCollider.h"
+#include"terrain.h"
 
 #include	"direct3d.h"//<<<<<<<<<<<<<<<<<<<
 
@@ -30,6 +31,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	//Controller_Initialize();
 
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
+	TerrainInitialize(pDevice, pContext);
 	PlayerInitialize(pDevice, pContext); // ボールの初期化
 
 	Camera_Initialize();	//カメラ初期化
@@ -62,6 +64,7 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void Game_Finalize()
 {
 	Field_Finalize();	// フィールドの終了処理
+	TerrainFinalize();
 	PlayerFinalize();	// ボールの終了処理
 	Camera_Finalize();	//カメラ終了処理
 
@@ -77,6 +80,7 @@ void Game_Update()
 	}
 	PlayerUpdate();
 	Field_Update();
+	TerrainUpdate();
 	ManagerCollider::UpdateAllCollisions();
 	Camera_Update();	//カメラ更新処理
 	//キー入力チェック
@@ -99,6 +103,7 @@ void Game_Draw()
 
 	Camera_Draw();		//Drawの最初で呼ぶ！
 	Field_Draw();
+	TerrainDraw();
 	PlayerDraw();
 
 	//2D描画
@@ -106,4 +111,3 @@ void Game_Draw()
 	Shader_SetLight(Light.Light);	//ライト構造体をシェーダーへセット
 	SetDepthTest(FALSE);
 }
-
