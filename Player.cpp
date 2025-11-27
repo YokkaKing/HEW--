@@ -2,7 +2,7 @@
 //Player.cpp
 
 #include	"keyboard.h"
-#include	"Controller.h"
+// #include	"Controller.h"
 #include	"Player.h"
 #include	"Camera.h"
 #include	"shader.h"

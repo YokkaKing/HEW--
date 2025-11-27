@@ -5,7 +5,7 @@
 #include	"sprite.h"
 #include	"Game.h"
 #include	"keyboard.h"
-#include	"Controller.h"
+//#include	"Controller.h"
 
 #include	"field.h"
 #include	"Effect.h"
@@ -20,12 +20,14 @@
 
 LIGHTOBJECT		Light;//<<<<<<ライト管理オブジェクト
 
+// 全オブジェクト
+std::vector<GameObject*> g_gameObjects;
 
 static	int		g_BgmID = NULL;	//サウンド管理ID
 
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Controller_Initialize();
+	//Controller_Initialize();
 
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
 	PlayerInitialize(pDevice, pContext); // ボールの初期化
@@ -69,10 +71,14 @@ void Game_Finalize()
 void Game_Update()
 {
 	//更新処理
+	for (auto obj : g_gameObjects)
+	{
+		obj->Update();
+	}
 	PlayerUpdate();
 	Field_Update();
-	Camera_Update();	//カメラ更新処理
 	ManagerCollider::UpdateAllCollisions();
+	Camera_Update();	//カメラ更新処理
 	//キー入力チェック
 //スタートボタンが押されたらシーンを切り替え
 //フェード処理中はキーを受け付けない
