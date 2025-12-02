@@ -423,7 +423,7 @@ void Field_Draw(void)
 
 		//DirectXへ行列をセット
 		Shader_SetWorldMatrix(World);
-		Shader_SetMatrix(WVP);
+		//Shader_SetMatrix(WVP);
 		
 		//テクスチャをセット
 		g_pContext->PSSetShaderResources(0, 1, &g_Texture);

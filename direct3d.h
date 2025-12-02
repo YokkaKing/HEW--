@@ -41,6 +41,7 @@ ID3D11DeviceContext* Direct3D_GetDeviceContext(); // デバイスコンテキストの取得
 unsigned int Direct3D_GetBackBufferWidth(); // バックバッファの幅を取得
 unsigned int Direct3D_GetBackBufferHeight(); // バックバッファの高さを取得
 
+HWND Direct3D_GetWindowHandle();
 
 void	SetDepthTest(bool flg);	//深度テスト切り替え
 

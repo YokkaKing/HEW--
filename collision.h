@@ -25,5 +25,3 @@ enum COLLISION_HIT
     HIT_WALL_2,        // •Ç‚É+Z‚©‚ç“–‚½‚Á‚½
     HIT_WALL_3,        // •Ç‚É-X‚©‚ç“–‚½‚Á‚½
 };
-
-

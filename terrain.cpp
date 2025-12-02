@@ -279,7 +279,7 @@ void TerrainDraw()
 
 	//シェーダーへ行列をセット
 	Shader_SetWorldMatrix(world);
-	Shader_SetMatrix(wvp);
+	// Shader_SetMatrix(wvp);
 
 	//モデルの描画リクエスト
 	ModelDraw(g_Terrain.m_model);
@@ -308,7 +308,7 @@ void TerrainDraw()
 
 		//シェーダーへ行列をセット
 		Shader_SetWorldMatrix(world);
-		Shader_SetMatrix(wvp);
+		// Shader_SetMatrix(wvp);
 
 		//モデルの描画リクエスト
 		ModelDraw(g_Terrain.m_model);
@@ -598,8 +598,6 @@ void TERRAIN::UpdateObject(std::vector<GameObject*> terrain)
 			terrain[i]->Move(0.0f, -0.1f, 0.0f);
 		}
 	}
-
-	/*hal::dout << terrain.size() << "\n";*/
 }
 // 当たり判定を作る
 void TERRAIN::CreateHit(std::vector<TERRAIN_OBJECT> terrain, XMFLOAT3 motherPosition)

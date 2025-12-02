@@ -1,81 +1,81 @@
+//Player2.cpp
 
-//Player.cpp
-
-#include	"keyboard.h"
-// #include	"Controller.h"
-#include	"Player.h"
-#include	"Camera.h"
-#include	"shader.h"
-#include    "Evolution.h"
-#include	"colliderFactory.h"
-#include "debug_ostream.h"
-
+#include"keyboard.h"
+#include"Player2.h"
+#include"Camera.h"
+#include"shader.h"
+#include"Evolution.h"
+#include"colliderFactory.h"
+#include"debug_ostream.h"
 
 #define JUMP_FORCE (0.15f)
 #define CLIMB_SPEED (JUMP_FORCE / 2.0f)
 
 //ボールオブジェクト
-PLAYER	g_Player;
+PLAYER2	g_Player2;
 
-ID3D11Device* g_pDevice;
-ID3D11DeviceContext* g_pContext;
+ID3D11Device* g_pDevice2;
+ID3D11DeviceContext* g_pContext2;
 
-void	PlayerInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
+void	Player2Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	g_pDevice = pDevice;
-	g_pContext = pContext;
+	g_pDevice2 = pDevice;
+	g_pContext2 = pContext;
 
-	g_Player.m_model = ModelLoad("asset\\model\\test.fbx");
+	g_Player2.m_model = ModelLoad("asset\\model\\ball.fbx");
 
-	g_Player.m_position = XMFLOAT3(0.0f, 0.5f, 1.0f);
-	g_Player.m_rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	g_Player.m_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	
-	g_Player.m_scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	g_Player2.m_position = XMFLOAT3(2.0f, 0.5f, 2.0f);
+	g_Player2.m_rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	g_Player2.m_velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
 
-	g_Player.State = PLAYER_STATE::PLAYER_STATE_MOVE;
+	g_Player2.m_scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
-	g_Player.m_acceleration = XMFLOAT3(0.0f, -9.8f / 600.0f * 0.5f, 0.0f);
-	g_Player.FrictionRate = 0.98f;
-	g_Player.EvolutionType = EVOLUTION_TYPE::EVOLUTION_TYPE_NONE;
+	g_Player2.State = PLAYER2_STATE::PLAYER2_STATE_MOVE;
 
-	g_Player.SetObject(g_Player.m_position, g_Player.m_scale, "Player", 0);
+	g_Player2.m_acceleration = XMFLOAT3(0.0f, -9.8f / 600.0f * 0.5f, 0.0f);
+
+	g_Player2.SetObject(g_Player2.m_position, g_Player2.m_scale, "Player2", 0);
 	EvolutionInitialize();
+
+	if (g_Player2.m_gameObject)
+	{
+		hal::dout << "登録した！！！\n";
+	}
 }
-void	PlayerFinalize()
+void	Player2Finalize()
 {
-	ModelRelease(g_Player.m_model);
+	ModelRelease(g_Player2.m_model);
 }
-void	PlayerUpdate()
+void	Player2Update()
 {
-	EvolvePlayer();           // Eキーで進化タイプを選択（一度だけ実行）
-	ApplyEvolutionEffect();   // 進化タイプに応じたパラメータを適用
-	Player_ManualMove();
+	Player2_ManualMove();
 }
 
-void Player_ManualMove() // 新しい手動移動関数として作成
+void Player2_ManualMove()
 {
-	g_Player.m_gameObject->m_position = g_Player.m_position;
+	g_Player2.m_gameObject->m_position = g_Player2.m_position;
+
+	hal::dout << g_Player2.m_gameObject->m_position.y << "\n";
 
 	// カメラの前方向ベクトル
 	float forwardX = GetCameraPosition().x - GetCameraAtPosition().x;
 	float forwardZ = GetCameraPosition().z - GetCameraAtPosition().z;
 
-	if (!g_Player.m_isGround) // 地面についてないときに重力発動
+	if (!g_Player2.m_isGround) // 地面についてないときに重力発動
 	{
-		g_Player.m_velocity.x += g_Player.m_acceleration.x;
-		g_Player.m_velocity.y += g_Player.m_acceleration.y;
-		g_Player.m_velocity.z += g_Player.m_acceleration.z;
+		g_Player2.m_velocity.x += g_Player2.m_acceleration.x;
+		g_Player2.m_velocity.y += g_Player2.m_acceleration.y;
+		g_Player2.m_velocity.z += g_Player2.m_acceleration.z;
 	}
 
 	// 地面についているときにコヨーテタイムが1.0fになる
-	if (g_Player.m_isGround)
+	if (g_Player2.m_isGround)
 	{
-		g_Player.m_koyoteTime = 1.0f;
+		g_Player2.m_koyoteTime = 1.0f;
 	}
 	else
 	{
-		g_Player.m_koyoteTime -= 0.1f;
+		g_Player2.m_koyoteTime -= 0.1f;
 	}
 
 	float len = sqrtf(forwardX * forwardX + forwardZ * forwardZ);
@@ -91,12 +91,12 @@ void Player_ManualMove() // 新しい手動移動関数として作成
 	float moveZ = 0.0f;
 
 	float speed = 0.0f;
-	if (Keyboard_IsKeyDown(KK_W))
+	if (Keyboard_IsKeyDown(KK_U))
 	{
 		// ベクトルが逆だから移動が逆になる
 		speed = -0.1f;
 	}
-	if (Keyboard_IsKeyDown(KK_S))
+	if (Keyboard_IsKeyDown(KK_J))
 	{
 		speed = 0.1f;
 	}
@@ -106,11 +106,11 @@ void Player_ManualMove() // 新しい手動移動関数として作成
 
 	// 横移動
 	float strafe = 0.0f;
-	if (Keyboard_IsKeyDown(KK_A))
+	if (Keyboard_IsKeyDown(KK_H))
 	{
 		strafe = +0.1f;  // 左
 	}
-	if (Keyboard_IsKeyDown(KK_D))
+	if (Keyboard_IsKeyDown(KK_K))
 	{
 		strafe = -0.1f;  // 右
 	}
@@ -118,46 +118,46 @@ void Player_ManualMove() // 新しい手動移動関数として作成
 	moveZ += rightZ * strafe;
 
 	// 最終速度
-	g_Player.m_velocity.x = moveX;
-	g_Player.m_velocity.z = moveZ;
+	g_Player2.m_velocity.x = moveX;
+	g_Player2.m_velocity.z = moveZ;
 
 	// スペース押した && コヨーテタイムが0.0fより大きい
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && g_Player.m_koyoteTime > 0.0f)
+	if (Keyboard_IsKeyDownTrigger(KK_SPACE) && g_Player2.m_koyoteTime > 0.0f)
 	{
-		g_Player.m_velocity.y = JUMP_FORCE;
-		g_Player.m_isGround = false;
-		g_Player.m_koyoteTime = 0.0f;
+		g_Player2.m_velocity.y = JUMP_FORCE;
+		g_Player2.m_isGround = false;
+		g_Player2.m_koyoteTime = 0.0f;
 	}
 	else
 	{
-		g_Player.m_isGround = false;
+		g_Player2.m_isGround = false;
 	}
 
-	g_Player.m_position.x += g_Player.m_velocity.x;
-	g_Player.m_position.z += g_Player.m_velocity.z;
-	g_Player.m_position.y += g_Player.m_velocity.y;
+	g_Player2.m_position.x += g_Player2.m_velocity.x;
+	g_Player2.m_position.z += g_Player2.m_velocity.z;
+	g_Player2.m_position.y += g_Player2.m_velocity.y;
 }
 
-void	PlayerDraw() 
+void	Player2Draw()
 {
 	//ワールド行列作成
 	XMMATRIX	scale = XMMatrixScaling(
-		g_Player.m_scale.x,
-		g_Player.m_scale.y,
-		g_Player.m_scale.z);
+		g_Player2.m_scale.x,
+		g_Player2.m_scale.y,
+		g_Player2.m_scale.z);
 	XMMATRIX	rotation = XMMatrixRotationRollPitchYaw(
-		g_Player.m_rotation.x,
-		g_Player.m_rotation.y,
-		g_Player.m_rotation.z);
+		g_Player2.m_rotation.x,
+		g_Player2.m_rotation.y,
+		g_Player2.m_rotation.z);
 	XMMATRIX	translation = XMMatrixTranslation(
-		g_Player.m_position.x,
-		g_Player.m_position.y,
-		g_Player.m_position.z);
+		g_Player2.m_position.x,
+		g_Player2.m_position.y,
+		g_Player2.m_position.z);
 	XMMATRIX	world = scale * rotation * translation;
 
 	//変換行列作成
-	XMMATRIX	view = GetViewMatrix();
-	XMMATRIX	projection = GetProjectionMatrix();
+	XMMATRIX	view = GetViewMatrix2();
+	XMMATRIX	projection = GetProjectionMatrix2();
 	XMMATRIX	wvp = world * view * projection;
 
 	//シェーダーへ行列をセット
@@ -165,27 +165,28 @@ void	PlayerDraw()
 	//Shader_SetMatrix(wvp);
 
 	//モデルの描画リクエスト
-	ModelDraw(g_Player.m_model);
-
+	ModelDraw(g_Player2.m_model);
 }
 
-XMFLOAT3 GetPlayerPosition()
+XMFLOAT3 GetPlayer2Position()
 {
-	return g_Player.m_position;
+	return g_Player2.m_position;
 }
 
-void Player_Jump()
+void Player2_Jump()
 {
-	g_Player.State = PLAYER_STATE::PLAYER_STATE_MOVE;
+	g_Player2.State = PLAYER2_STATE::PLAYER2_STATE_MOVE;
 }
 
-PLAYER* GetPlayer()
+PLAYER2* GetPlayer2()
 {
-	return &g_Player;
+	return &g_Player2;
 }
 
-void PLAYER::OnCollision(const CollisionInfo& info)
+void PLAYER2::OnCollision(const CollisionInfo& info)
 {
+	hal::dout << "呼ばれてはいる\n";
+
 	if (!info.isHit) return;
 
 	// --- まずタグで相手を識別 ---
@@ -258,7 +259,7 @@ void PLAYER::OnCollision(const CollisionInfo& info)
 	}
 }
 
-void PLAYER::SetObject(XMFLOAT3 pos, XMFLOAT3 scl, std::string tag, int lay)
+void PLAYER2::SetObject(XMFLOAT3 pos, XMFLOAT3 scl, std::string tag, int lay)
 {
 	GameObject* obj = ColliderFactory::CreateBoxObject(
 		pos,
@@ -271,6 +272,6 @@ void PLAYER::SetObject(XMFLOAT3 pos, XMFLOAT3 scl, std::string tag, int lay)
 
 	for (auto& col : obj->GetColliders<>())
 	{
-		col->owner = &g_Player;
+		col->owner = &g_Player2;
 	}
 }
