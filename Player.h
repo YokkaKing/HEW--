@@ -9,14 +9,9 @@ using namespace DirectX;
 
 #include	"model.h"
 #include "gameObject.h"
+#include "EvolutionType.h"
+class IWeapon;
 
-
-enum class EVOLUTION_TYPE
-{
-	EVOLUTION_TYPE_A, // 機動力特化
-	EVOLUTION_TYPE_B, // 制動・防御特化
-	EVOLUTION_TYPE_NONE // 未進化
-};
 
 #define PLAYER_SPEED_MAX (1.0f)
 #define PLAYER_RADIUS    (0.2f)
@@ -37,17 +32,17 @@ enum PLAYER_STATE
 class PLAYER: public GameObject
 {
 public:
-	//XMFLOAT3	Position;	//表示座標
-	//XMFLOAT3	Rotation;	//回転角
-	//XMFLOAT3	Scaling;	//拡大率
-	//XMFLOAT3	Velocity;	//速度
-	//XMFLOAT3    Acceleration; //落下速度
 
-	float           FrictionRate;   // 速度減衰率
-	EVOLUTION_TYPE  EvolutionType;  // 進化タイプ (A or B or NONE)
+
+	float           m_FrictionRate;   // 速度減衰率
+	EVOLUTION_TYPE  m_EvolutionType;  // 進化タイプ (A or B or NONE)
 
 	PLAYER_STATE	State;		//状態
-	//MODEL* Model;		//モデルデータ
+	float m_Health;        // プレイヤーの現在の体力
+	float m_MaxHealth;     // プレイヤーの最大体力
+	bool m_IsAttacking;    // 攻撃中かどうか
+	IWeapon* m_CurrentWeapon; // 装備している武器へのポインタ
+	int m_AttackTimer;
 
 public:
 	void OnCollision(const CollisionInfo& info)override;
@@ -59,8 +54,9 @@ void	PlayerInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void	PlayerFinalize();
 void	PlayerUpdate();
 void	PlayerDraw();
-
+void PlayerTakeDamage(float damageAmount);
 XMFLOAT3 GetPlayerPosition();
+BOOL PlayerDie();
 
 void Player_Idle();
 void Player_Move();
