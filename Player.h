@@ -12,6 +12,7 @@ using namespace DirectX;
 #define PLAYER_SPEED_MAX (1.0f)
 #define PLAYER_RADIUS    (0.2f)
 
+
 void	PlayerInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext);
 void	PlayerFinalize();
 void	PlayerUpdate();
@@ -25,7 +26,7 @@ void Player_Power();
 void Player_Direction();
 
 
-//ボールの状態
+//プレイヤーの状態
 enum PLAYER_STATE
 {
 	PLAYER_STATE_IDLE = 0,	//何もしない
@@ -34,7 +35,7 @@ enum PLAYER_STATE
 	PLAYER_STATE_POWER,		//威力指示
 };
 
-//ボール構造体
+//プレイヤー構造体
 class PLAYER
 {
 	public:
@@ -43,6 +44,8 @@ class PLAYER
 		XMFLOAT3	Scaling;	//拡大率
 		XMFLOAT3	Velocity;	//速度
 		XMFLOAT3    Acceleration; //落下速度
+
+
 
 		PLAYER_STATE	State;		//状態
 		MODEL*		Model;		//モデルデータ

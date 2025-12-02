@@ -16,11 +16,11 @@
 
 #include "Manager.h"
 #include "Audio.h"	//<<<<<<<<<<<<<追加
-
+#include "Viewport.h"
 
 ///////////////////////////////////////////
-#define		SCREEN_WIDTH	(1280)
-#define		SCREEN_HEIGHT	(720)
+#define		SCREEN_WIDTH	(1920)
+#define		SCREEN_HEIGHT	(1080)
 
 
 //==================================
@@ -103,6 +103,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	//ウィンドウ内部の更新要求
 	UpdateWindow(hWnd);
 
+	//Viewport_Initialize(hWnd);
 
 	Direct3D_Initialize(hWnd);
 	Keyboard_Initialize();
@@ -175,7 +176,7 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	Manager_Finalize();
 
 
-	UninitAudio();		//サウンドの終了
+	//UninitAudio();		//サウンドの終了
 
 	Shader_Finalize(); // シェーダの終了処理
 	FinalizeSprite();	//スプライトの終了処理

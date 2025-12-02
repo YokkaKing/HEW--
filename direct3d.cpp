@@ -22,6 +22,7 @@ static ID3D11Texture2D* g_pDepthStencilBuffer = nullptr;
 static ID3D11DepthStencilView* g_pDepthStencilView = nullptr;
 static D3D11_TEXTURE2D_DESC g_BackBufferDesc{};
 static D3D11_VIEWPORT g_Viewport{};////////////////追加
+static HWND g_hWnd = nullptr;
 
 static bool configureBackBuffer(); // バックバッファの設定・生成
 static void releaseBackBuffer(); // バックバッファの解放
@@ -50,6 +51,8 @@ bool Direct3D_Initialize(HWND hWnd)
     swap_chain_desc.SampleDesc.Quality = 0;
     swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;//0にしてみる
     swap_chain_desc.OutputWindow = hWnd;
+
+	g_hWnd = hWnd;
 
 	/*
 	IDXGIFactory1* pFactory;
@@ -248,6 +251,10 @@ unsigned int Direct3D_GetBackBufferHeight()
 	return g_BackBufferDesc.Height;
 }
 
+HWND Direct3D_GetWindowHandle()
+{
+	return g_hWnd;
+}
 
 ////////////////////////////////////////////////////////
 

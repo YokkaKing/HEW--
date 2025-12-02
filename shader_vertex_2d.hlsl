@@ -50,7 +50,7 @@ VS_OUTPUT main(VS_INPUT vs_in)
     VS_OUTPUT vs_out;   //出力用構造体変数
     
     //頂点を行列で変換
-    vs_out.posH = mul(vs_in.posL, mtx);
+    vs_out.posH = mul(vs_in.posL, mul(World, mtx));
     //頂点カラーはそのまま出力
     vs_out.color = vs_in.color;
 

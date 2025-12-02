@@ -23,22 +23,38 @@ class CAMERA
 		float		FarClip;		//‰“–ÊƒNƒŠƒbƒv‹——£
 };
 
+
 void	Camera_Initialize();
 void	Camera_Finalize();
 void	Camera_Update();
+void    Camera2_Update();
 void	Camera_Draw();
+void    Camera2_Draw();
 
 void	SetCameraFov(float);
 void	SetCameraAspect(float);
 void	SetCameraClip(float, float);
 
+void	SetCamera2Fov(float);
+void	SetCamera2Aspect(float);
+void	SetCamera2Clip(float, float);
+
 void	SetCameraPosition(XMFLOAT3);
 void	SetCameraAtPosition(XMFLOAT3);
 void	SetCameraUpVector(XMFLOAT3);
 
+void	SetCamera2Position(XMFLOAT3);
+void	SetCamera2AtPosition(XMFLOAT3);
+void	SetCamera2UpVector(XMFLOAT3);
+
 XMMATRIX	GetViewMatrix();
 XMMATRIX	GetProjectionMatrix();
 
+XMMATRIX	GetViewMatrix2();
+XMMATRIX	GetProjectionMatrix2();
 
 XMFLOAT3   GetCameraAtPosition();
 XMFLOAT3   GetCameraPosition();
+
+XMFLOAT3   GetCamera2AtPosition();
+XMFLOAT3   GetCamera2Position();

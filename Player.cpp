@@ -15,8 +15,6 @@ ID3D11DeviceContext* g_pContext;
 
 float g_StopTime = 0.0f; // ボールが制止するまでの時間
 
-
-
 void	PlayerInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
 	g_pDevice = pDevice;
@@ -39,7 +37,6 @@ void	PlayerInitialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void	PlayerFinalize()
 {
 
-
 	ModelRelease(g_Player.Model);
 
 }
@@ -47,42 +44,18 @@ void	PlayerUpdate()
 {
 	switch (g_Player.State)
 	{
+		Player_Direction();
+
 	case PLAYER_STATE::PLAYER_STATE_IDLE:
 		Player_Idle();
 		break;
 	case PLAYER_STATE::PLAYER_STATE_MOVE:
 		Player_Move();
 		break;
-	case PLAYER_STATE::PLAYER_STATE_DIRECTION:
-		Player_Direction();
-		break;
 	case PLAYER_STATE::PLAYER_STATE_POWER:
 		Player_Power();
 		break;
 	}
-
-	//デバッグ
-	//g_Player.Velocity = XMFLOAT3(0, 0, 0);
-	//if (Keyboard_IsKeyDown(KK_UP))
-	//{
-	//	g_Player.Velocity.z = 1.0f / 60.0f;
-	//}
-	//if (Keyboard_IsKeyDown(KK_DOWN))
-	//{
-	//	g_Player.Velocity.z = -1.0f / 60.0f;
-	//}
-	//if (Keyboard_IsKeyDown(KK_LEFT))
-	//{
-	//	g_Player.Velocity.x = -1.0f / 60.0f;
-	//}
-	//if (Keyboard_IsKeyDown(KK_RIGHT))
-	//{
-	//	g_Player.Velocity.x = 1.0f / 60.0f;
-	//}
-	//g_Player.Position.x += g_Player.Velocity.x;
-	//g_Player.Position.y += g_Player.Velocity.y;
-	//g_Player.Position.z += g_Player.Velocity.z;
-
 
 }
 void	PlayerDraw() 
@@ -109,7 +82,7 @@ void	PlayerDraw()
 
 	//シェーダーへ行列をセット
 	Shader_SetWorldMatrix(world);
-	Shader_SetMatrix(wvp);
+	//Shader_SetMatrix(wvp);
 
 	//モデルの描画リクエスト
 	ModelDraw(g_Player.Model);
@@ -123,15 +96,61 @@ XMFLOAT3 GetPlayerPosition()
 
 void Player_Idle()
 {
-
+	g_Player.State = PLAYER_STATE::PLAYER_STATE_MOVE;
 }
 
 void Player_Move()
 {
+	float PlayerMoveSpeed = 2.0f / 60.0f;
+
+	XMFLOAT3 CameraPos = GetCameraPosition();
+	XMFLOAT3 CameraAtPos = GetCameraAtPosition();
+	XMFLOAT3 Forward, LR;//前後左右
+	Forward.x = CameraPos.x - CameraAtPos.x;
+	Forward.z = CameraPos.z - CameraAtPos.z;
+	Forward.y = 0.0f;
+
+	float len = sqrtf(Forward.x * Forward.x + Forward.z * Forward.z);
+	if (len > 0.00001f)
+	{
+		Forward.x /= len;
+		Forward.z /= len;
+
+		//左右ベクトルの計算
+		LR.x = -Forward.z;
+		LR.y = 0.0f;
+		LR.z = Forward.x;
+
+	}
 	//g_Player.Velocity.x += g_Player.Acceleration.x;
 	//g_Player.Velocity.y += g_Player.Acceleration.y;
 	//g_Player.Velocity.z += g_Player.Acceleration.z;
 
+	if (Keyboard_IsKeyDown(KK_W)) //前方方向移動
+	{
+		g_Player.Position.x -= Forward.x * PlayerMoveSpeed;
+		g_Player.Position.z -= Forward.z * PlayerMoveSpeed;
+	}
+	if (Keyboard_IsKeyDown(KK_A)) //左方向移動
+	{
+		g_Player.Position.x -= LR.x * PlayerMoveSpeed;
+		g_Player.Position.z -= LR.z * PlayerMoveSpeed;
+	}
+	if (Keyboard_IsKeyDown(KK_S)) //後方向移動
+	{
+		g_Player.Position.x += Forward.x * PlayerMoveSpeed;
+		g_Player.Position.z += Forward.z * PlayerMoveSpeed;
+	}
+	if (Keyboard_IsKeyDown(KK_D)) //右方向移動
+	{
+		g_Player.Position.x += LR.x * PlayerMoveSpeed;
+		g_Player.Position.z += LR.z * PlayerMoveSpeed;
+	}
+
+	g_Player.Velocity.x *= PlayerMoveSpeed;
+	g_Player.Velocity.z *= PlayerMoveSpeed;
+
+	//プレイヤーの座標計算
 	g_Player.Position.x += g_Player.Velocity.x;
 	g_Player.Position.y += g_Player.Velocity.y;
 	g_Player.Position.z += g_Player.Velocity.z;
@@ -141,14 +160,14 @@ void Player_Move()
 	g_Player.Velocity.z *= 0.98;
 
 	//静止チェック
-	float len = (g_Player.Velocity.x * g_Player.Velocity.x + g_Player.Velocity.y * g_Player.Velocity.y + g_Player.Velocity.z * g_Player.Velocity.z);
-	if (len <= 0.0002f)//静止とみなす速度
+	float slen = (g_Player.Velocity.x * g_Player.Velocity.x + g_Player.Velocity.y * g_Player.Velocity.y + g_Player.Velocity.z * g_Player.Velocity.z);
+	if (slen <= 0.0002f)//静止とみなす速度
 	{
 		g_StopTime++;
 		if (g_StopTime > (60.0f * 2))//2秒間止まっている
 		{
 			g_Player.Velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
-			g_Player.State = PLAYER_STATE::PLAYER_STATE_DIRECTION;
+			g_Player.State = PLAYER_STATE::PLAYER_STATE_IDLE;
 			g_StopTime = 0.0f;
 		}
 	}
@@ -173,9 +192,6 @@ void Player_Power()
 void Player_Direction()
 {
 	//とりあえずカメラの向いてる方向へ転がす
-	//スペースキーで転がる
-	if (Keyboard_IsKeyDownTrigger(KK_SPACE))
-	{
 		//カメラの向き
 		XMFLOAT3 v1 = GetCameraAtPosition();
 		XMFLOAT3 v2 = GetCameraPosition();
@@ -191,8 +207,6 @@ void Player_Direction()
 
 		g_Player.Velocity = Direction;
 
-		g_Player.State = PLAYER_STATE::PLAYER_STATE_POWER;
-	}
 
 }
 
