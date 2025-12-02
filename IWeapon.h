@@ -13,9 +13,9 @@ using namespace DirectX;
 enum class WeaponType
 {
     SWORD,
-    BOW,
+    ARROW,
     SPEAR,
-    SHURIKEN,
+    SYURIKEN,
     HAMMER,
     NONE
 };

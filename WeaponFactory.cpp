@@ -18,13 +18,13 @@ IWeapon* WeaponFactory::CreateWeapon(WeaponType type, ID3D11Device* pDevice, ID3
     case WeaponType::SWORD:
         newWeapon = new Sword();
         break;
-    case WeaponType::BOW:
+    case WeaponType::ARROW:
         newWeapon = new Arrow();
         break;
     case WeaponType::SPEAR:
         newWeapon = new Spear();
         break;
-    case WeaponType::SHURIKEN:
+    case WeaponType::SYURIKEN:
         newWeapon = new Syuriken();
         break;
     case WeaponType::HAMMER:
