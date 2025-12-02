@@ -14,21 +14,25 @@
 #include	"Camera.h"
 #include "fade.h"
 #include "Player.h"
+#include "Player2.h"
 #include "managerCollider.h"
 
 #include	"direct3d.h"//<<<<<<<<<<<<<<<<<<<
 
 LIGHTOBJECT		Light;//<<<<<<ライト管理オブジェクト
 
+static Controller g_PlayerController(0); // 0はプレイヤー1のインデックス
+static Controller g_Player2Controller(1); // 0はプレイヤー1のインデックス
 
 static	int		g_BgmID = NULL;	//サウンド管理ID
 
 void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
-	Controller_Initialize();
+	//Controller_Initialize();
 
 	Field_Initialize(pDevice, pContext); // フィールドの初期化
 	PlayerInitialize(pDevice, pContext); // ボールの初期化
+	Player2Initialize(pDevice, pContext); // Player2の初期化
 
 	Camera_Initialize();	//カメラ初期化
 
@@ -60,7 +64,8 @@ void Game_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 void Game_Finalize()
 {
 	Field_Finalize();	// フィールドの終了処理
-	PlayerFinalize();	// ボールの終了処理
+	PlayerFinalize();	// プレイヤーの終了処理
+	Player2Finalize();	// プレイヤー2の終了処理
 	Camera_Finalize();	//カメラ終了処理
 
 	UnloadAudio(g_BgmID);//サウンドの解放
@@ -68,20 +73,16 @@ void Game_Finalize()
 
 void Game_Update()
 {
+	//毎フレーム、コントローラーの状態を更新する★
+	g_PlayerController.UpdateState();
+	g_Player2Controller.UpdateState(); // Player2コントローラーの状態を更新
 	//更新処理
 	PlayerUpdate();
+	Player2Update(); // Player2の更新処理
 	Field_Update();
-	Camera_Update();	//カメラ更新処理
 	ManagerCollider::UpdateAllCollisions();
-	//キー入力チェック
-//スタートボタンが押されたらシーンを切り替え
-//フェード処理中はキーを受け付けない
-	if (Keyboard_IsKeyDownTrigger(KK_ENTER) && (GetFadeState() == FADE_NONE))
-	{
-		//フェードアウトさせてシーンを切り替える
-		XMFLOAT4	color(0.0f, 0.0f, 0.0f, 1.0f);
-		SetFade(40.0f, color, FADE_OUT, SCENE_RESULT);
-	}
+	Camera_Update();	//カメラ更新処理
+
 
 }
 
@@ -94,6 +95,7 @@ void Game_Draw()
 	Camera_Draw();		//Drawの最初で呼ぶ！
 	Field_Draw();
 	PlayerDraw();
+	Player2Draw(); // Player2の描画処理
 
 	//2D描画
 	Light.SetEnable(FALSE);			//ライティングOFF
@@ -101,3 +103,15 @@ void Game_Draw()
 	SetDepthTest(FALSE);
 }
 
+
+// Controllerインスタンスを返すGetter関数
+Controller* GetPlayerController()
+{
+	return &g_PlayerController;
+}
+
+
+Controller* GetPlayer2Controller()
+{
+	return &g_Player2Controller;
+}

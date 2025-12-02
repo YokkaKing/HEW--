@@ -2,6 +2,7 @@
 //Game.h
 #pragma once
 
+#include "Controller.h"
 #include "direct3d.h"
 
 
@@ -12,3 +13,6 @@ void Game_Draw();
 
 
 
+// Controllerのインスタンスを取得するための関数
+Controller* GetPlayerController();
+Controller* GetPlayer2Controller();//プレイヤー２用

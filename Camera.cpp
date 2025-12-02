@@ -5,9 +5,11 @@
 #include	"Camera.h"
 #include	"keyboard.h"
 #include	"Player.h"
+#include	"Controller.h"
 
 //グローバル変数
 static	CAMERA	CameraObject;
+static	Controller* g_pController = nullptr;
 
 XMFLOAT3		g_PlayerPosOld;//<<<<<<<<<<<<<<
 
@@ -24,12 +26,22 @@ void	Camera_Initialize()
 	CameraObject.NearClip = 0.5f;
 	CameraObject.FarClip = 1000.0f;
 
-	g_PlayerPosOld = GetPlayerPosition();//<<<<<<<<<<<<<<<<
+	g_PlayerPosOld = GetPlayerPosition();
 
+	if (g_pController == nullptr)
+	{
+		// ユーザーインデックス 0 のコントローラーを使用
+		g_pController = new Controller(0);
+	}
 }
 
 void	Camera_Finalize()
 {
+	if (g_pController != nullptr)
+	{
+		delete g_pController;
+		g_pController = nullptr;
+	}
 	return;
 }
 void	Camera_Update()
@@ -53,17 +65,33 @@ void	Camera_Update()
 	CameraObject.AtPosition.y = g_PlayerPosOld.y;
 	CameraObject.AtPosition.z = g_PlayerPosOld.z;
 
-
+	// コントローラーの状態を更新し、右スティックのX軸の入力を取得
+	float rightThumbX = 0.0f;
+	if (g_pController != nullptr && g_pController->UpdateState())
+	{
+		// Controller.h/.cpp に GetRightThumbX() を追加済みを前提
+		rightThumbX = g_pController->GetRightThumbX();
+	}
 	//注視点を中心にカメラの位置を回転（Y軸回転）
 	float	Rotation = 0.0f;
-	if (Keyboard_IsKeyDown(KK_Q))
+	//if (Keyboard_IsKeyDown(KK_Q))
+	//{
+	//	Rotation = 1.0f;
+	//}
+	//if (Keyboard_IsKeyDown(KK_E))
+	//{
+	//	Rotation = -1.0f;
+	//}
+
+	if (std::abs(rightThumbX) > 0.0f)
 	{
-		Rotation = 1.0f;
+		// スティックの入力値に応じて回転量を決定
+		// 例: 入力を約 2.0 倍して、回転速度を調整（この値は調整可能です）
+		// 右スティックを右に倒すと (rightThumbX > 0) -> Rotation が負 (左回転) になるように調整
+		Rotation = -rightThumbX * 2.0f;
 	}
-	if (Keyboard_IsKeyDown(KK_E))
-	{
-		Rotation = -1.0f;
-	}
+
+
 
 	//注視点からカメラへのベクトル
 	XMFLOAT2	vec;
