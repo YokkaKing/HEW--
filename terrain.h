@@ -3,7 +3,7 @@
 * タイトル	地形
 * 作成者		久保木幹太
 * 作成日		11月25日
-* 更新日		11月25日
+* 更新日		12月02日
 */
 
 #ifndef TERRAIN_H
@@ -16,6 +16,13 @@
 using namespace DirectX;
 #include"gameObject.h"
 #include<string>
+
+// 新しい型 座標と大きさを格納する
+struct XMFLOAT6
+{
+	XMFLOAT3 pos;
+	XMFLOAT3 size;
+};
 
 // 地形の種類
 enum class TERRAIN_TYPE
@@ -35,8 +42,9 @@ void TerrainDraw();
 class TERRAIN_OBJECT
 {
 public:
-	XMFLOAT3 m_position;
+	XMFLOAT3 m_position;	// 座標
 	XMFLOAT3 m_distance;	// 中心からどれだけ離れた場所にいるか
+	XMFLOAT3 m_size;		// 大きさ
 	TERRAIN_TYPE m_type;	// どの種類の地形か
 };
 
@@ -44,25 +52,44 @@ class TERRAIN : public GameObject
 {
 public:
 	// マザーポジション,こいつが動くと他が連動して動く
-	XMFLOAT3 m_motherPosition;
+	XMFLOAT3 m_motherPosition{};
 	// 作成したオブジェクトを保存する器
 	std::vector<GameObject*> terrainObjects;
-	std::vector<GameObject*> hills;
-	std::vector<GameObject*> walls;
-	std::vector<GameObject*> trees;
+	std::vector<GameObject*> hills;	// 丘の当たり判定の全て
+	std::vector<GameObject*> walls;	// 壁の当たり判定の全て
+	std::vector<GameObject*> trees;	// 木の当たり判定の全て
+
 public:
 	void SetObject(XMFLOAT3 pos, XMFLOAT3 scl, std::string tag, int lay);
 
-public:
-	// string型で書いたオブジェクトの当たり判定をchar型にして効率よくする
+	//================================================================
+	//	複数の当たり判定を細かく設定したい用
+	//================================================================
+		// string型で書いたオブジェクトの当たり判定をchar型にして効率よくする
 	std::vector<std::vector<std::vector<char>>> ConvertTerrain(std::vector<std::vector<std::vector<std::string>>> terrain);
 	// char型になったオブジェクトの当たり判定がいくつあるのか数える
 	size_t CountObjects(const std::vector<std::vector<std::vector<char>>>& obj);
 	// 受け取った総量のオブジェクトの当たり判定をデータとして格納する
 	std::vector<TERRAIN_OBJECT> InitializeObject(const std::vector<std::vector<std::vector<char>>>& terrainChip, TERRAIN_TYPE type);
-	void UpdateObject(std::vector<TERRAIN_OBJECT> terrain);
+	//================================================================
+	//	大きな当たり判定を作り出す用
+	//================================================================
+		// char型になったオブジェクトの種類がいくつあるか数える
+	size_t CountObjectType(const std::vector<std::vector<std::vector<char>>>& obj);
+	// char型になったオブジェクトの頂点を求めて、1つのオブジェクトとして認識する
+	std::vector<XMFLOAT6> VolumeObject(const std::vector<std::vector<std::vector<char>>>& terrainChip, const size_t objectType, XMFLOAT3 size);
+	// 受け取った総量のオブジェクトの当たり判定をデータとして格納する
+	std::vector<TERRAIN_OBJECT> InitializeObject(const std::vector<std::vector<std::vector<char>>>& terrainChip, std::vector<XMFLOAT6> mixVal, const size_t objectType, TERRAIN_TYPE type);
+
+public:
+	// 各オブジェクトを更新する処理
+	void UpdateObject(std::vector<GameObject*> terrain);
 	// 自動で当たり判定を作り出す
 	void CreateHit(std::vector<TERRAIN_OBJECT> terrain, XMFLOAT3 motherPosition);
+
+public:
+	void PixelObjects(const std::vector<std::vector<std::vector<std::string>>> terrain, TERRAIN_TYPE type, XMFLOAT3 motherPosition);
+	void SimpleObjects(const std::vector<std::vector<std::vector<std::string>>> terrain, XMFLOAT3 size, TERRAIN_TYPE type, XMFLOAT3 motherPosition);
 };
 
 #endif // TERRAIN_H
